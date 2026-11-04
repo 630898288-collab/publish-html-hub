@@ -1,13 +1,13 @@
 {
-  "slug": "my-first-asset",
-  "title": "示例：把标题换成你的成果名",
-  "summary": "一句话说清这份成果对同事有什么用",
-  "description": "2-3 句：这是什么 → 核心结论或主要内容 → 为什么值得看。",
-  "tags": "标签1、标签2、标签3",
-  "search_terms": "口语说法、简称、同义词、英文缩写、业务词、别称、相关产品名、场景词",
-  "use_cases": "什么时候该看、什么时候该看、什么时候该看",
-  "audience": "市场部、品类发展",
-  "topics": "业务大类",
-  "freshness": "evergreen",
+  "slug": "marketing-dashboard",
+  "title": "营销数据看板 · 竞品与社媒监听",
+  "summary": "一处看全竞品动作与社媒声量",
+  "description": "把竞品情报、社媒监听与电商表现汇到同一看板，支持按品类与时间对比。适合月度复盘和投放调整时快速定位异常。",
+  "tags": "数据看板、竞品情报、社媒监听、营销复盘",
+  "search_terms": "看板、dashboard、竞品、社媒、声量、口碑、月报、复盘、投放、GEO",
+  "use_cases": "月度复盘时、写投放策略时、追踪竞品上新时",
+  "audience": "市场部、品类发展、电商内容",
+  "topics": "数据分析",
+  "freshness": "需定期更新",
   "note": "v1 首版"
 }
