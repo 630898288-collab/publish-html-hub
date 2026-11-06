@@ -1,0 +1,19 @@
+{
+  "slug": "geo-report-writer",
+  "title": "GEO 周报生成 Skill",
+  "summary": "一句话生成竞品与 GEO 周报",
+  "description": "把竞品情报与 GEO 表现整理成固定结构的周报，自动补齐检索词与来源。适合每周复盘前快速出稿，装到技能目录后由 Agent 直接调用。",
+  "tags": "GEO、周报、竞品情报、自动化",
+  "search_terms": "GEO、周报、竞品、自动生成、报告、skill、安装、工作流",
+  "use_cases": "写周报前、需要快速汇总竞品动作时",
+  "audience": "市场部、品类发展",
+  "topics": "AI 工作流",
+  "freshness": "evergreen",
+  "note": "v1 首版",
+  "type": "skill",
+  "skill_dir": "geo-report-writer",
+  "skill_repo_url": "https://github.com/630898288-collab/geo-report-writer",
+  "skill_download_url": "https://github.com/630898288-collab/geo-report-writer/archive/refs/heads/main.zip",
+  "skill_requires_env": true,
+  "skill_install_note": "需要先在 .env 里配置数据接口密钥，.env 不要提交到 Git"
+}

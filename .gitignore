@@ -1,4 +1,6 @@
 .env
+.update-cache.json
 .DS_Store
 *.log
+*.zip
 node_modules/
