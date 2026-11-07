@@ -67,7 +67,7 @@ if (opts['skip-update-check'] !== 'true') {
   }
 }
 // 只想查版本、不发布：把结构化结果直接输出给 Agent
-if (opts['check-update'] === 'true' && !opts.link && !opts.skill && !positional.length) {
+if (opts['check-update'] === 'true' && !opts.link && !opts.skill && !opts.conversation && !positional.length) {
   console.log(JSON.stringify(updateState, null, 2));
   process.exit(0);
 }
@@ -259,16 +259,24 @@ function packSkillDir(dir, skillDir) {
 const linkUrl = opts.link ? String(opts.link).trim() : '';
 const file = positional[0] ?? '';
 const skillArg = opts.skill && opts.skill !== 'true' ? String(opts.skill) : '';
+// 形态 5：精选对话。Agent 按标准模板把当前对话总结成 JSON 文件，脚本只负责提交，
+// 不读取、不解析聊天记录 —— 内容完全由 Agent 在自己的上下文里生成。
+const conversationPath = opts.conversation && opts.conversation !== 'true' ? String(opts.conversation) : '';
+let conversationData = null;
 // 「这是 Skill」的判定：目录里有 SKILL.md、文件是 .zip、或调用方显式 --type skill / --skill
 const explicitSkill = String(values.type ?? '').trim() === 'skill' || Boolean(opts.skill);
 const isUpdate = opts['allow-partial'] === 'true' || opts['refresh-meta'] === 'true';
 
-if (linkUrl && (file || skillArg)) {
-  console.error('只能选一种形态：要么 --link 登记线上地址，要么给一个本地文件 / Skill 目录。');
+if (linkUrl && (file || skillArg || conversationPath)) {
+  console.error('只能选一种形态：--link 登记线上地址、本地文件 / Skill 目录、或 --conversation 精选对话，三选一。');
   process.exit(3);
 }
-if (!linkUrl && !file && !skillArg) {
-  console.error('缺少内容：--link <公网地址>、<本地文件.html/.pdf>、<Skill 目录> 或 --skill <目录>。');
+if (conversationPath && (file || skillArg)) {
+  console.error('--conversation 不能和本地文件 / Skill 目录一起用。');
+  process.exit(3);
+}
+if (!linkUrl && !file && !skillArg && !conversationPath) {
+  console.error('缺少内容：--link <公网地址>、<本地文件.html/.pdf>、<Skill 目录> 或 --conversation <结构化对话.json>。');
   console.error('本机 localhost / 内网地址不能发布；只有本地 Demo 时请发 HTML 文件，见 SKILL.md。');
   process.exit(1);
 }
@@ -278,7 +286,38 @@ let fileName = '';
 let skillSourceDir = '';
 let packedZip = null;
 
-if (linkUrl) {
+if (conversationPath) {
+  if (!fs.existsSync(conversationPath)) {
+    console.error(`--conversation 文件不存在：${conversationPath}`);
+    process.exit(1);
+  }
+  try {
+    conversationData = JSON.parse(fs.readFileSync(conversationPath, 'utf8'));
+  } catch (e) {
+    console.error(`--conversation 不是合法 JSON：${e.message}`);
+    process.exit(2);
+  }
+  // 本地先做一次必填预检，省得发到服务端才被拒
+  const c = conversationData || {};
+  const missing = [];
+  if (!String(c.headline ?? '').trim()) missing.push('headline（一句话结论）');
+  if (!String(c.why?.question ?? '').trim()) missing.push('why.question（要解决的问题）');
+  if (!Array.isArray(c.sparks?.nodes) || c.sparks.nodes.length < 2) missing.push('sparks.nodes（脉络节点 ≥2）');
+  if (!Array.isArray(c.outcome?.conclusions) || !c.outcome.conclusions.length) missing.push('outcome.conclusions（关键结论 ≥1）');
+  if (missing.length) {
+    console.error(`精选对话模板不完整，请补齐后再发：\n  ${missing.join('\n  ')}`);
+    console.error('模板见 SKILL.md「形态 5：把当前对话总结成精选对话」。');
+    process.exit(2);
+  }
+  kind = 'chat';
+  values.type = 'chat';
+  // 覆盖升级（--allow-partial）时不自动补标题/描述：服务端会沿用旧卡片的人工修正，
+  // 这里若拿新 headline 顶上去，等于每次改对话都把标题改掉。
+  if (!isUpdate) {
+    if (!values.title) values.title = String(c.headline).trim().slice(0, 40);
+    if (!values.summary) values.summary = String(c.headline).trim().slice(0, 40);
+  }
+} else if (linkUrl) {
   const check = inspectWebUrl(linkUrl);
   if (check.local) {
     console.error(`发布中止（退出码 3）：${check.reason}${check.host ? `（${check.host}）` : ''}。`);
@@ -384,6 +423,11 @@ const PREVIEW = {
     mode: 'download',
     hint: '已登记为「Skill共享」的 GitHub 形态，成果台不存文件。详情页点下载会跳到 GitHub 的 ZIP 直链，同时提供一键复制安装指令。',
   },
+  chat: {
+    browserViewable: true,
+    mode: 'structured',
+    hint: '详情页按固定 6 区块展示：为什么聊、思维链导图、碰撞火花、聊出了什么、可带走、原始摘录。导图节点可点击查看每一轮人与 AI 的碰撞。前台有独立的「精选对话」分区。',
+  },
 };
 
 // 没给标题时从 HTML 的 <title>/<h1> 兜底，至少不会退化成文件名。
@@ -398,8 +442,11 @@ if (!values.title && opts['allow-partial'] !== 'true' && kind === 'html' && fs.e
 
 // 覆盖升级时只改文件、沿用旧卡片描述是合理的，此时不必强求全套字段
 if (!isUpdate) {
-  const missing = REQUIRED.filter(([k]) => !String(values[k] ?? '').trim());
-  const weak = RECOMMENDED.filter(([k]) => !String(values[k] ?? '').trim());
+  // 精选对话的卡片元信息由结构化内容 + 服务端兜底生成，只保留标题这一项硬要求
+  const requiredHere = kind === 'chat' ? REQUIRED.filter(([k]) => k === 'title') : REQUIRED;
+  const weakHere = kind === 'chat' ? [] : RECOMMENDED;
+  const missing = requiredHere.filter(([k]) => !String(values[k] ?? '').trim());
+  const weak = weakHere.filter(([k]) => !String(values[k] ?? '').trim());
   if (missing.length) {
     console.error('发布中止：以下必填字段为空，请先读一遍成果内容把它们补上再发。\n');
     console.error('缺失字段（必填）：');
@@ -436,6 +483,13 @@ if (opts['dry-run'] === 'true') {
     skillDir: values['skill-dir'] || null,
     skillDownloadUrl: values['skill-download-url'] || null,
     packedFrom: skillSourceDir || null,
+    conversation: conversationData
+      ? {
+          headline: conversationData.headline,
+          nodes: conversationData.sparks?.nodes?.length ?? 0,
+          conclusions: conversationData.outcome?.conclusions?.length ?? 0,
+        }
+      : null,
     preview: PREVIEW[kind],
     blocked: false,
     update: updateState,
@@ -457,7 +511,19 @@ if (!HUB_URL || !HUB_TOKEN) {
   process.exit(1);
 }
 
-if (linkUrl) {
+if (conversationData) {
+  // 精选对话走 JSON body：结构本身是内容，不需要伪造一个上传文件
+  const body = { conversation: conversationData };
+  for (const [cli, api] of Object.entries(FIELD_MAP)) {
+    if (values[cli] !== undefined) body[api] = values[cli];
+  }
+  const res = await fetch(withShareCode(`${HUB_URL}/api/publish`), {
+    method: 'POST',
+    headers: authHeaders({ 'content-type': 'application/json' }),
+    body: JSON.stringify(body),
+  });
+  await handle(res, kind);
+} else if (linkUrl) {
   const body = { url: linkUrl };
   for (const [cli, api] of Object.entries(FIELD_MAP)) {
     if (values[cli] !== undefined) body[api] = values[cli];

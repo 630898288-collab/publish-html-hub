@@ -97,6 +97,10 @@ node ~/.workbuddy/skills/publish-html-hub/scripts/publish.mjs \
 node ~/.workbuddy/skills/publish-html-hub/scripts/publish.mjs \
   --link https://github.com/630898288-collab/geo-report-writer --type skill --meta meta-skill.json
 
+# 把当前对话总结成「精选对话」（Agent 按模板生成 conversation.json 后提交）
+node ~/.workbuddy/skills/publish-html-hub/scripts/publish.mjs \
+  --conversation /tmp/conversation.json --title "从盲测到体验即内容" --tags "净饮机、事件营销"
+
 # 发布前先看形态判断（不需要令牌）
 node ~/.workbuddy/skills/publish-html-hub/scripts/publish.mjs --link https://example.com/app --meta meta.json --dry-run
 ```
@@ -106,3 +110,9 @@ node ~/.workbuddy/skills/publish-html-hub/scripts/publish.mjs --link https://exa
 发布 Skill 目录时需要系统 `zip` 命令（macOS / Linux 自带）。打包会保留 `.env.example` 模板、排除 `.env` 等真实凭据；现成 zip 不重新打包，由发布者自己确认里面没有令牌。
 
 同一份成果升级时用相同 `slug` 再推一次即可，旧版本自动归档、可在详情页回滚。先发 Demo、后拿到线上地址，也用同一个 slug，不会多出一张卡片。
+
+## 精选对话
+
+模板见 `example-conversation.json`，完整规则见 SKILL.md「形态 5」。**Skill 不读取聊天记录** —— 由装有它的 Agent 依据自身上下文，按固定 6 区块（为什么聊 / 思维链导图 / 碰撞火花 / 聊出了什么 / 可带走 / 原始摘录）总结成 JSON，再用 `--conversation` 上传。
+
+服务端校验必填字段（一句话结论、要解决的问题、脉络节点 ≥2、关键结论 ≥1）并重写成标准形状，缺字段拒收；因此每个人在详情页看到的区块顺序完全一致。前台有独立的「精选对话」分区，导图节点可点击查看每一轮「人的质疑 → AI 回应 → 转向结果」。默认不上传对话全文，原话摘录需人工勾选并脱敏。

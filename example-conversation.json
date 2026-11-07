@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "headline": "盲测不是最优互动：矿化口感的正向感知发生在体验之后，内容主线应是设计体验而非证明优劣",
+  "meta": {
+    "author": "",
+    "date": "2026-11-07",
+    "model": "Claude",
+    "domain": "净饮机上市",
+    "turns": 24
+  },
+  "why": {
+    "background": "高端台式净饮机上市事件营销方案待定",
+    "question": "线下互动到底怎么设计才能让消费者感知矿化口感",
+    "initialAssumption": "用盲测证明我们的水更好喝，是最有说服力的互动"
+  },
+  "sparks": {
+    "nodes": [
+      {
+        "stage": "起点假设",
+        "trigger": "要不要做盲测互动",
+        "humanPush": "",
+        "aiResponse": "建议用盲测对比突出矿化口感优势",
+        "turn": "方案围绕盲测展开",
+        "kind": "start"
+      },
+      {
+        "stage": "人的质疑",
+        "trigger": "调研结论真的支持盲测吗",
+        "humanPush": "调研只验证了体验后的正向感知，没有说它是购买前的动机；这两件事不能混",
+        "aiResponse": "承认把「体验后感知」误当成「购买动机」，原方案前提不成立",
+        "turn": "从证明优劣转向设计体验",
+        "kind": "question"
+      },
+      {
+        "stage": "推翻与重构",
+        "trigger": "那互动形式该怎么定",
+        "humanPush": "盲测会把注意力引向比较，而不是产品体验本身",
+        "aiResponse": "改为以体验事件承载内容，让口感成为可分享的经历",
+        "turn": "盲测路径被否，主线换成体验即内容",
+        "kind": "overturn"
+      },
+      {
+        "stage": "决策",
+        "trigger": "方案怎么收敛",
+        "humanPush": "坚持单一主题打穿心智，不要摊成多个互动模块",
+        "aiResponse": "收敛为一条主线和一套 UGC 分享机制",
+        "turn": "定了体验即内容 + 分享必须被设计",
+        "kind": "decision"
+      }
+    ],
+    "disagreements": [
+      "人指出调研只验证了「体验后」感知，AI 初版把它当成购买前动机"
+    ],
+    "overturned": ["盲测是最优互动形式"],
+    "insights": ["UGC 分享不会自然发生，必须被设计"],
+    "iterations": [
+      { "from": "盲测对比", "to": "体验即内容", "reason": "感知发生在体验之后，比较无法制造动机" }
+    ]
+  },
+  "outcome": {
+    "strategy": "单一主题打穿心智，以体验事件承载内容，配套设计 UGC 分享机制",
+    "conclusions": [
+      "矿化口感是体验后的正向感知，不是购买动机",
+      "盲测不是最优互动形式"
+    ],
+    "decisions": ["撤掉泡奶场景方案", "线下互动不以盲测为主"],
+    "openQuestions": ["UGC 激励机制具体怎么设计"]
+  },
+  "takeaways": {
+    "quotes": ["先让人喝到，再让人说出来"],
+    "frameworks": ["体验后感知 ≠ 购买前动机"],
+    "prompts": []
+  },
+  "excerpts": []
+}
